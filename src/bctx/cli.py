@@ -391,33 +391,155 @@ def memory():
 
 
 @memory.command()
-@click.argument("entry")
-def add_memory(entry: str):
-    """Add a memory entry."""
-    click.echo(f"TODO: Implement memory add (Phase 2)")
-    click.echo(f"Entry: {entry}")
+@click.argument("title")
+@click.argument("content")
+@click.option("--tags", help="Comma-separated tags")
+@click.option("--id", "entry_id", help="Custom entry ID (auto-generated if not provided)")
+def add_memory(title: str, content: str, tags: Optional[str], entry_id: Optional[str]):
+    """Add a memory entry.
+
+    TITLE: Entry title
+    CONTENT: Entry content (markdown)
+    """
+    try:
+        from .memory import LongTermMemory, create_memory_entry
+        from datetime import datetime
+
+        # Parse tags
+        tag_list = [t.strip() for t in tags.split(",")] if tags else []
+
+        # Generate ID if not provided
+        if not entry_id:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            entry_id = f"entry-{timestamp}"
+
+        # Create entry
+        entry = create_memory_entry(
+            id=entry_id,
+            title=title,
+            tags=tag_list,
+            content=content,
+        )
+
+        # Add to LTM
+        ltm = LongTermMemory()
+        ltm.add_entry(entry)
+
+        click.echo(f"✓ Added memory entry: {entry_id}")
+        click.echo(f"  Title: {title}")
+        click.echo(f"  Tags: {', '.join(tag_list) if tag_list else '(none)'}")
+
+    except Exception as e:
+        click.echo(f"Error: {e}", err=True)
+        sys.exit(1)
 
 
 @memory.command()
-@click.argument("store")
-def show(store: str):
-    """Show memory store contents."""
-    click.echo(f"TODO: Implement memory show (Phase 2)")
-    click.echo(f"Store: {store}")
+@click.argument("entry_id")
+def show(entry_id: str):
+    """Show a memory entry by ID.
+
+    ENTRY_ID: ID of the entry to show
+    """
+    try:
+        from .memory import LongTermMemory
+
+        ltm = LongTermMemory()
+        entry = ltm.get_entry(entry_id)
+
+        if not entry:
+            click.echo(f"Error: Entry '{entry_id}' not found.", err=True)
+            sys.exit(1)
+
+        # Display entry
+        click.echo(f"\n{'=' * 60}")
+        click.echo(f"ID: {entry.id}")
+        click.echo(f"Title: {entry.title}")
+        click.echo(f"Tags: {', '.join(entry.tags) if entry.tags else '(none)'}")
+        click.echo(f"Created: {entry.created}")
+        click.echo(f"Modified: {entry.last_modified}")
+        if entry.related_entries:
+            click.echo(f"Related: {', '.join(entry.related_entries)}")
+        click.echo(f"{'=' * 60}\n")
+        click.echo(entry.content)
+        click.echo()
+
+    except Exception as e:
+        click.echo(f"Error: {e}", err=True)
+        sys.exit(1)
 
 
 @memory.command()
 @click.argument("query")
-def search(query: str):
-    """Search memory entries."""
-    click.echo(f"TODO: Implement memory search (Phase 2)")
-    click.echo(f"Query: {query}")
+@click.option("--limit", "-n", default=5, help="Number of results to return")
+def search(query: str, limit: int):
+    """Search memory entries.
+
+    QUERY: Search query (matches title, tags, content)
+    """
+    try:
+        from .memory import LongTermMemory
+
+        ltm = LongTermMemory()
+        results = ltm.search(query, k=limit)
+
+        if not results:
+            click.echo(f"No results found for '{query}'")
+            return
+
+        click.echo(f"\nFound {len(results)} result(s) for '{query}':\n")
+
+        for i, entry in enumerate(results, 1):
+            click.echo(f"{i}. {entry.id} - {entry.title}")
+            click.echo(f"   Tags: {', '.join(entry.tags) if entry.tags else '(none)'}")
+            click.echo(f"   Modified: {entry.last_modified}")
+            # Show first line of content
+            first_line = entry.content.strip().split("\n")[0]
+            click.echo(f"   {first_line[:80]}...")
+            click.echo()
+
+    except Exception as e:
+        click.echo(f"Error: {e}", err=True)
+        sys.exit(1)
 
 
 @memory.command()
 def list_memory():
-    """List all memory stores."""
-    click.echo("TODO: Implement memory list (Phase 2)")
+    """List all memory entries."""
+    try:
+        from .memory import LongTermMemory
+
+        ltm = LongTermMemory()
+        index = ltm.get_index()
+
+        if not index.entries:
+            click.echo("No memory entries found.")
+            return
+
+        click.echo(f"\nMemory Store: {index.name}")
+        click.echo(f"Description: {index.description}")
+        click.echo(f"Total entries: {len(index.entries)}\n")
+
+        # Sort by last_modified
+        sorted_entries = sorted(
+            index.entries.items(),
+            key=lambda x: x[1].get("last_modified", ""),
+            reverse=True,
+        )
+
+        for entry_id, entry_summary in sorted_entries:
+            title = entry_summary.get("title", "")
+            tags = entry_summary.get("tags", [])
+            modified = entry_summary.get("last_modified", "")
+
+            click.echo(f"• {entry_id} - {title}")
+            click.echo(f"  Tags: {', '.join(tags) if tags else '(none)'}")
+            click.echo(f"  Modified: {modified}")
+            click.echo()
+
+    except Exception as e:
+        click.echo(f"Error: {e}", err=True)
+        sys.exit(1)
 
 
 @cli.command()
