@@ -1,0 +1,104 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bctx"
+version = "2.0.0-alpha"
+description = "Claude Code Context Manager & Agent Harness"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Ajinkya Nawarkar", email = "ajinkya@lasso-labs.ai"}
+]
+maintainers = [
+    {name = "Ajinkya Nawarkar", email = "ajinkya@lasso-labs.ai"}
+]
+keywords = [
+    "claude",
+    "claude-code",
+    "context-management",
+    "agent-harness",
+    "ai-agents",
+    "memory-system"
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence"
+]
+requires-python = ">=3.9"
+dependencies = [
+    "click>=8.0.0",
+    "PyYAML>=6.0.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "mypy>=1.0.0",
+    "types-PyYAML>=6.0.0"
+]
+
+[project.urls]
+Homepage = "https://github.com/Ajinkya-Nawarkar/bctx"
+Repository = "https://github.com/Ajinkya-Nawarkar/bctx"
+Issues = "https://github.com/Ajinkya-Nawarkar/bctx/issues"
+Documentation = "https://github.com/Ajinkya-Nawarkar/bctx/blob/main/README.md"
+
+[project.scripts]
+bctx = "bctx.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+bctx = ["hooks/templates/*"]
+
+[tool.black]
+line-length = 100
+target-version = ['py39', 'py310', 'py311', 'py312']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q --cov=bctx --cov-report=term-missing"
+testpaths = ["tests"]

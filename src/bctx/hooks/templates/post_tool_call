@@ -1,0 +1,6 @@
+#!/bin/bash
+# bctx post_tool_call hook
+# Executes after each tool call completes
+
+bctx observe --event post_tool_call
+exit $?

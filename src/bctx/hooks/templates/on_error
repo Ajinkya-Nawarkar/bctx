@@ -1,0 +1,6 @@
+#!/bin/bash
+# bctx on_error hook
+# Executes when an error occurs
+
+bctx observe --event on_error
+exit $?

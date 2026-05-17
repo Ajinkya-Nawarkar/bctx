@@ -1,0 +1,6 @@
+#!/bin/bash
+# bctx post_command hook
+# Executes after each Claude Code command completes
+
+bctx observe --event post_command
+exit $?

@@ -1,0 +1,6 @@
+#!/bin/bash
+# bctx pre_session hook
+# Executes before each Claude Code session starts
+
+bctx observe --event pre_session
+exit $?
